@@ -19,18 +19,27 @@ import dnnlib
 import dnnlib.tflib as tflib
 import config
 
+# The pickle formats load _G, _D, Gs.
+# _G = Snapshot of the generator. Mainly useful for resuming a previous training run.
+# _D = Snapshot of the discriminator. Mainly useful for resuming a previous training run.
+# Gs = Long-term average of the generator.
+#      Yields higher-quality results than the snapshot.
 
 def load_nvidia_face_model():
-    # Load pre-trained network.
-    url = 'https://drive.google.com/uc?id=1MEGjdvVpUsu1jB4zrXZN7Y4kBBOzizDQ' # karras2019stylegan-ffhq-1024x1024.pkl
+    # karras2019stylegan-ffhq-1024x1024.pkl
+    url = 'https://drive.google.com/uc?id=1MEGjdvVpUsu1jB4zrXZN7Y4kBBOzizDQ'
+
     with dnnlib.util.open_url(url, cache_dir=config.cache_dir) as f:
         _G, _D, Gs = pickle.load(f)
-        # _G = Instantaneous snapshot of the generator. Mainly useful for resuming a previous training run.
-        # _D = Instantaneous snapshot of the discriminator. Mainly useful for resuming a previous training run.
-        # Gs = Long-term average of the generator. Yields higher-quality results than the instantaneous snapshot.
 
     # Print network details.
     # Gs.print_layers()
+    return Gs
+
+
+def load_gwern_model():
+    fname = "/home/lacker/models/2019-03-08-stylegan-animefaces-network-02051-021980.pkl"
+    _G, _D, Gs = pickle.load(open(fname, "rb"))
     return Gs
 
 
@@ -41,22 +50,26 @@ def generate(Gs, seed, outfile):
 
     # Generate image.
     fmt = dict(func=tflib.convert_images_to_uint8, nchw_to_nhwc=True)
-    images = Gs.run(latents, None, truncation_psi=0.7, randomize_noise=False, output_transform=fmt)
+    images = Gs.run(latents, None,
+                    truncation_psi=0.7,
+                    randomize_noise=False,
+                    output_transform=fmt)
 
     # Save image.
     os.makedirs(config.result_dir, exist_ok=True)
     png_filename = os.path.join(config.result_dir, outfile + '.png')
     PIL.Image.fromarray(images[0], 'RGB').save(png_filename)
-
+    print("generated", png_filename)
+    
     
 def main():
     # Initialize TensorFlow.
     tflib.init_tf()
 
-    Gs = load_nvidia_face_model()
+    Gs = load_gwern_model()
 
-    for x in range(2):
-        generate(Gs, 5, f'example{x}')
+    for x in range(10):
+        generate(Gs, x, f'example{x}')
 
     
 if __name__ == "__main__":
