@@ -58,6 +58,9 @@ def generate(Gs, seed, outfile):
     # Save image.
     os.makedirs(config.result_dir, exist_ok=True)
     png_filename = os.path.join(config.result_dir, outfile + '.png')
+    print(images.shape)
+    if True:
+        raise Exception("XXX")
     PIL.Image.fromarray(images[0], 'RGB').save(png_filename)
     print("generated", png_filename)
     
