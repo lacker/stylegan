@@ -43,11 +43,39 @@ def load_gwern_model():
     return Gs
 
 
-def generate(Gs, seed, outfile):
+def generate_latents(seed):
     # Pick latent vector.
     rnd = np.random.RandomState(seed)
-    latents = rnd.randn(1, Gs.input_shape[1])
+    latents = rnd.randn(1, 512)    
+    return latents
 
+
+# This is for the resumable version. But let's make an unresumable version first
+class State(object):
+    def __init__(self, latents=None, index=None, seed=None):
+        if latents is None:
+            assert index is None
+            assert seed is not None
+            self.latents = generate_latents(seed)
+            self.index = 0
+            return
+
+        assert index is not None
+        assert seed is None
+        self.latents = latents
+        self.index = index
+
+
+# How far is this from being a picture of AJ
+AJ = PIL.Image.open(os.path.join(config.result_dir, "aj.png"))
+AJ_ARRAY = np.array(AJ)
+def aj_distance(image):
+    small = image.resize((64, 64), PIL.Image.ANTIALIAS)
+    array = np.array(small)
+    print(AJ_ARRAY.shape, array.shape)
+        
+        
+def generate_image(Gs, latents, outfile):
     # Generate image.
     fmt = dict(func=tflib.convert_images_to_uint8, nchw_to_nhwc=True)
     images = Gs.run(latents, None,
@@ -58,21 +86,23 @@ def generate(Gs, seed, outfile):
     # Save image.
     os.makedirs(config.result_dir, exist_ok=True)
     png_filename = os.path.join(config.result_dir, outfile + '.png')
-    print(images.shape)
-    if True:
-        raise Exception("XXX")
-    PIL.Image.fromarray(images[0], 'RGB').save(png_filename)
-    print("generated", png_filename)
+    image = PIL.Image.fromarray(images[0], 'RGB')
+    image.save(png_filename)
+    print("generated", png_filename, "with aj_distance", aj_distance(image))
+    
     
     
 def main():
+    print("initializing...")
+    
     # Initialize TensorFlow.
     tflib.init_tf()
 
     Gs = load_gwern_model()
 
     for seed in range(10):
-        generate(Gs, seed, f'example{seed}')
+        latents = generate_latents(seed)
+        generate_image(Gs, latents, f'example{seed}')
 
     
 if __name__ == "__main__":
