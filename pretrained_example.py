@@ -68,8 +68,8 @@ def main():
 
     Gs = load_gwern_model()
 
-    for x in range(10):
-        generate(Gs, x, f'example{x}')
+    for seed in range(10):
+        generate(Gs, seed, f'example{seed}')
 
     
 if __name__ == "__main__":
