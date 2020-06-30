@@ -83,15 +83,18 @@ def aj_distance(image):
     return np.linalg.norm(diff, 1) / diff.size
         
         
-def generate_image(Gs, latents, outfile):
+def generate_image(Gs, latents):
     # Generate image.
     fmt = dict(func=tflib.convert_images_to_uint8, nchw_to_nhwc=True)
     images = Gs.run(latents, None,
                     truncation_psi=0.7,
                     randomize_noise=False,
                     output_transform=fmt)
+    image = PIL.Image.fromarray(images[0], "RGB")
+    return image
 
-    # Save image.
+
+def save_image(image, outfile):
     os.makedirs(config.result_dir, exist_ok=True)
     png_filename = os.path.join(config.result_dir, outfile + '.png')
     image = PIL.Image.fromarray(images[0], 'RGB')
@@ -110,8 +113,9 @@ def main():
 
     for seed in range(10):
         latents = generate_latents(seed)
-        generate_image(Gs, latents, f'example{seed}')
+        image = generate_image(Gs, latents)
+        save_image(image, f'example{seed}')
 
-    
+        
 if __name__ == "__main__":
     main()
