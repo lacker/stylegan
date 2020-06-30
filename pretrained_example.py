@@ -7,6 +7,14 @@
 
 """Minimal script for generating an image using pre-trained StyleGAN generator."""
 
+import sys
+try:
+    import PIL.Image
+except ModuleNotFoundError:
+    print("you forgot to run:\nsource activate stylegan")
+    sys.exit(1)
+    
+
 # Turn off deprecation warning spam
 import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
@@ -14,7 +22,6 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import os
 import pickle
 import numpy as np
-import PIL.Image
 import dnnlib
 import dnnlib.tflib as tflib
 import config
@@ -72,7 +79,8 @@ AJ_ARRAY = np.array(AJ)
 def aj_distance(image):
     small = image.resize((64, 64), PIL.Image.ANTIALIAS)
     array = np.array(small)
-    print(AJ_ARRAY.shape, array.shape)
+    diff = AJ_ARRAY.subtract(array)
+    return np.linalg.norm(diff, 1) / diff.size
         
         
 def generate_image(Gs, latents, outfile):
