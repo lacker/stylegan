@@ -75,7 +75,7 @@ class State(object):
 
 # How far is this from being a picture of AJ
 AJ = PIL.Image.open(os.path.join(config.result_dir, "aj.png"))
-AJ_RAVELED = np.ravel(np.array(AJ_ARRAY))
+AJ_RAVELED = np.ravel(np.array(AJ))
 def aj_distance(image):
     small = image.resize((64, 64), PIL.Image.ANTIALIAS)
     raveled = np.ravel(np.array(small))
