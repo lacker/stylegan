@@ -79,7 +79,7 @@ AJ_ARRAY = np.array(AJ)
 def aj_distance(image):
     small = image.resize((64, 64), PIL.Image.ANTIALIAS)
     array = np.array(small)
-    diff = AJ_ARRAY.subtract(array)
+    diff = np.subtract(AJ_ARRAY, array)
     return np.linalg.norm(diff, 1) / diff.size
         
         
