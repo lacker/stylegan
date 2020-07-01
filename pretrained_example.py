@@ -97,7 +97,6 @@ def generate_image(Gs, latents):
 def save_image(image, outfile):
     os.makedirs(config.result_dir, exist_ok=True)
     png_filename = os.path.join(config.result_dir, outfile + '.png')
-    image = PIL.Image.fromarray(images[0], 'RGB')
     image.save(png_filename)
     print("generated", png_filename, "with aj_distance", aj_distance(image))
     
