@@ -99,8 +99,14 @@ def save_image(image, outfile):
     png_filename = os.path.join(config.result_dir, outfile + '.png')
     image.save(png_filename)
     print("generated", png_filename, "with aj_distance", aj_distance(image))
-    
-    
+
+
+# latents are a standard normal distribution
+# we scale the fuzz by scale
+# amount will be something uniformly between -amount and +amount
+def fuzz(latents, scale):
+    noise = np.random.randn(*latents.shape) * scale
+    return np.add(latents, noise)
     
 def main():
     print("initializing...")
@@ -110,10 +116,29 @@ def main():
 
     Gs = load_gwern_model()
 
-    for seed in range(10):
-        latents = generate_latents(seed)
-        image = generate_image(Gs, latents)
-        save_image(image, f'example{seed}')
+    latents = generate_latents(3)
+    image = generate_image(Gs, latents)
+    distance = aj_distance(image)
+    counter = 0
+    save_image(image, "example0")
+    fails = 0
+
+    while True:
+        new_latents = fuzz(latents, 0.05)
+        new_image = generate_image(Gs, new_latents)
+        new_distance = aj_distance(new_image)
+
+        if new_distance >= distance:
+            fails += 1
+            continue
+        print(f"success after {fails} fails")
+        
+        fails = 0        
+        counter += 1
+        save_image(new_image, f'example{counter}')
+        image = new_image
+        distance = new_distance
+        latents = new_latents
 
         
 if __name__ == "__main__":
